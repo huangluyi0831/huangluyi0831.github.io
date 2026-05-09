@@ -2575,31 +2575,43 @@ if (e.key === 'Escape' && modalOverlay.classList.contains('active')) closeModal(
 });
 
 // ============================================
-// 联系表单 Netlify 异步提交（无刷新）
+// 联系表单 Netlify 异步提交（无刷新）- 修复版
 // ============================================
 if (contactForm && formSuccess) {
-contactForm.addEventListener('submit', async (e) => {
-e.preventDefault();
-const formData = new FormData(contactForm);
-try {
-const response = await fetch('/', {
-method: 'POST',
-body: formData,
-headers: { 'Accept': 'application/json' }
-});
-const data = await response.json();
-if (response.ok && data.code === 'success') {
-contactForm.style.display = 'none';
-formSuccess.style.display = 'block';
-contactForm.reset();
-} else {
-alert('提交失败，请稍后重试或直接发送邮件至 h18970097580@163.com');
-}
-} catch (error) {
-console.error('提交错误:', error);
-alert('网络错误，请检查网络后重试');
-}
-});
+    contactForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        // 显示“发送中...”提示
+        const submitBtn = contactForm.querySelector('.form-submit');
+        const originalBtnText = submitBtn.textContent;
+        submitBtn.textContent = '发送中...';
+        submitBtn.disabled = true;
+
+        const formData = new FormData(contactForm);
+        
+        try {
+            const response = await fetch(window.location.href, {
+                method: 'POST',
+                body: formData
+            });
+
+            if (response.ok) {
+                contactForm.style.display = 'none';
+                if (formSuccess) formSuccess.style.display = 'block';
+                contactForm.reset();
+            } else {
+                const errorText = await response.text();
+                console.error('提交失败:', errorText);
+                alert('提交失败，请稍后重试或直接发送邮件至 h18970097580@163.com');
+            }
+        } catch (error) {
+            console.error('网络错误:', error);
+            alert('网络连接出现问题，请检查网络后重试。\n如果问题持续，请直接发送邮件至 h18970097580@163.com');
+        } finally {
+            submitBtn.textContent = originalBtnText;
+            submitBtn.disabled = false;
+        }
+    });
 }
 
 // ============================================
