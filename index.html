@@ -2187,7 +2187,7 @@ fill="url(#decorBronze)"/>
 </div>
 </div>
 
-<!-- 社交链接 -->
+<!-- 自我评价卡片（原社交链接替换） -->
 <div class="contact-item">
 <div class="contact-icon">
 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -2207,25 +2207,24 @@ fill="url(#decorBronze)"/>
 </div>
 </div>
 
-<!-- 联系表单 -->
+<!-- 联系表单 - Netlify Forms 改造版 -->
 <div class="contact-form fade-in-up">
 <h3 class="form-title">给我留言</h3>
-<!-- 注意：将下面的 action 地址替换成你自己的 Formspree 表单地址 -->
-<form action="https://formspree.io/f/mvzlwbvl" method="POST" id="contactForm">
-<form action="https://formspree.io/f/你的表单ID" method="POST" id="contactForm">
+<!-- 使用 Netlify Forms：添加 netlify 属性，删除 action/method，加上隐藏的 form-name -->
+<form netlify name="contact" id="contactForm">
+<input type="hidden" name="form-name" value="contact">
 <div class="form-group">
 <label class="form-label" for="name">您的姓名 *</label>
 <input type="text" id="name" name="name" class="form-input" placeholder="请输入您的姓名" required>
 </div>
 <div class="form-group">
 <label class="form-label" for="email">电子邮箱 *</label>
-<input type="email" id="email" name="_replyto" class="form-input" placeholder="请输入您的邮箱" required>
+<input type="email" id="email" name="email" class="form-input" placeholder="请输入您的邮箱" required>
 </div>
 <div class="form-group">
 <label class="form-label" for="message">留言内容 *</label>
 <textarea id="message" name="message" class="form-input form-textarea" placeholder="请输入您的留言内容..." required></textarea>
 </div>
-<input type="hidden" name="_subject" value="新留言来自黄露仪作品集">
 <button type="submit" class="form-submit">发送留言</button>
 </form>
 <div class="form-success" id="formSuccess">
@@ -2238,14 +2237,16 @@ fill="url(#decorBronze)"/>
 </div>
 </div>
 
+</div>
+</div>
+</section>
+<!-- 【修改联系方式区域结束】 -->
+
 <!-- 页脚 -->
 <footer class="footer">
 <p>© 2024 黄露仪. All Rights Reserved.</p>
 </footer>
 
-<!-- ============================================
-        JavaScript 交互脚本
-   ============================================ -->
 <script>
 // ============================================
 // 作品集项目数据
@@ -2386,16 +2387,18 @@ const formSuccess = document.getElementById('formSuccess');
 // ============================================
 // 移动端菜单切换
 // ============================================
+if (menuToggle) {
 menuToggle.addEventListener('click', () => {
 navLinks.classList.toggle('active');
 });
-
-// 点击导航链接后关闭菜单
+}
+if (navLinks) {
 navLinks.querySelectorAll('a').forEach(link => {
 link.addEventListener('click', () => {
 navLinks.classList.remove('active');
 });
 });
+}
 
 // ============================================
 // 滚动动画 (Intersection Observer)
@@ -2420,23 +2423,18 @@ observer.observe(el);
 // ============================================
 // 作品集轮盘交互
 // ============================================
-// 轮盘扇形点击事件
 document.querySelectorAll('.wheel-sector').forEach(sector => {
 sector.addEventListener('click', function() {
 const category = this.getAttribute('data-category');
 openModal(category);
 });
-
 sector.addEventListener('mouseenter', function() {
 this.style.transform = 'scale(1.02)';
 });
-
 sector.addEventListener('mouseleave', function() {
 this.style.transform = 'scale(1)';
 });
 });
-
-// 移动端网格点击事件
 document.querySelectorAll('.portfolio-grid-item').forEach(item => {
 item.addEventListener('click', function() {
 const category = this.getAttribute('data-category');
@@ -2450,50 +2448,41 @@ openModal(category);
 function openModal(category) {
 const data = portfolioData[category];
 if (!data) return;
-
 modalTitle.textContent = data.title;
-
 let projectsHTML = '<div class="project-list">';
 data.projects.forEach((project, index) => {
 const images = project.images || (project.image ? [project.image] : []);
-const imageGridId = 'img-grid-' + index;
-// 根据类别决定图片显示方式
 const isSingleImage = images.length === 1;
-
 projectsHTML += `
-                   <div class="project-card" style="display: flex; gap: 1.5rem; align-items: flex-start;">
-                       <!-- 图片展示 -->
-                       <div class="project-image-container" style="flex-shrink: 0; position: relative;">
-                           <div id="${imageGridId}" class="project-images-grid" style="display: grid; ${isSingleImage ? 'grid-template-columns: 1fr; width: 240px;' : 'grid-template-columns: repeat(3, 1fr); gap: 8px; width: 280px;'}">
-               `;
-
+<div class="project-card" style="display: flex; gap: 1.5rem; align-items: flex-start;">
+<div class="project-image-container" style="flex-shrink: 0; position: relative;">
+<div id="img-grid-${index}" class="project-images-grid" style="display: grid; ${isSingleImage ? 'grid-template-columns: 1fr; width: 240px;' : 'grid-template-columns: repeat(3, 1fr); gap: 8px; width: 280px;'}">
+`;
 images.forEach((img, imgIndex) => {
 const escapedImg = img.replace(/'/g, "\\'").replace(/"/g, '\\"');
 const escapedTitle = project.title.replace(/'/g, "\\'").replace(/"/g, '\\"');
 projectsHTML += `
-                               <div class="project-image" style="cursor: pointer; ${isSingleImage ? 'width: 240px; height: 180px;' : 'width: 88px; height: 66px;'} overflow: hidden; border-radius: 8px; position: relative;" onclick="event.stopPropagation(); openImageFloat(this, '${escapedImg}', '${escapedTitle}${isSingleImage ? '' : ' - 图' + (imgIndex + 1)}')">
-                                   <img src="${img}" alt="${project.title}" loading="lazy" style="width: 100%; height: 100%; object-fit: cover;">
-                               </div>
-                   `;
+<div class="project-image" style="cursor: pointer; ${isSingleImage ? 'width: 240px; height: 180px;' : 'width: 88px; height: 66px;'} overflow: hidden; border-radius: 8px; position: relative;" onclick="event.stopPropagation(); openImageFloat(this, '${escapedImg}', '${escapedTitle}${isSingleImage ? '' : ' - 图' + (imgIndex + 1)}')">
+<img src="${img}" alt="${project.title}" loading="lazy" style="width: 100%; height: 100%; object-fit: cover;">
+</div>
+`;
 });
-
 projectsHTML += `
-                           </div>
-                       </div>
-                       <div class="project-info" style="flex: 1; min-width: 0;">
-                           <h4>${project.title}</h4>
-                           <div class="project-meta">
-                               <span class="project-tag">${project.date}</span>
-                               <span class="project-tag">${project.role}</span>
-                           </div>
-                           <p class="project-description">${project.description}</p>
-                           ${project.achievements ? `<div class="project-achievements"><strong>项目成果：</strong>${project.achievements}</div>` : ''}
-                       </div>
-                   </div>
-               `;
+</div>
+</div>
+<div class="project-info" style="flex: 1; min-width: 0;">
+<h4>${project.title}</h4>
+<div class="project-meta">
+<span class="project-tag">${project.date}</span>
+<span class="project-tag">${project.role}</span>
+</div>
+<p class="project-description">${project.description}</p>
+${project.achievements ? `<div class="project-achievements"><strong>项目成果：</strong>${project.achievements}</div>` : ''}
+</div>
+</div>
+`;
 });
 projectsHTML += '</div>';
-
 modalBody.innerHTML = projectsHTML;
 modalOverlay.classList.add('active');
 document.body.style.overflow = 'hidden';
@@ -2504,132 +2493,63 @@ modalOverlay.classList.remove('active');
 document.body.style.overflow = '';
 }
 
-// 悬浮浮层方式显示大图（暴露到全局）
+// 悬浮浮层方式显示大图
 window.currentFloatLayer = null;
 window.lastClickedElement = null;
 
 window.openImageFloat = function(clickedElement, imageSrc, title) {
-// 检查是否是同一个元素被点击两次
 if (window.lastClickedElement === clickedElement && window.currentFloatLayer) {
 window.closeFloatLayer();
 return;
 }
-
-// 关闭之前的浮层
 window.closeFloatLayer();
-
-// 记录当前点击元素
 window.lastClickedElement = clickedElement;
-
-// 创建浮层
 const floatLayer = document.createElement('div');
 floatLayer.id = 'imageFloatLayer';
 floatLayer.style.cssText = `
-               position: fixed;
-               z-index: 3000;
-               background: white;
-               border-radius: 16px;
-               box-shadow: 0 8px 32px rgba(74, 64, 58, 0.2);
-               overflow: hidden;
-               max-width: 600px;
-               width: calc(100% - 2rem);
-               max-height: 80vh;
-               display: flex;
-               flex-direction: column;
-           `;
-
-// 关闭按钮
+position: fixed;
+z-index: 3000;
+background: white;
+border-radius: 16px;
+box-shadow: 0 8px 32px rgba(74, 64, 58, 0.2);
+overflow: hidden;
+max-width: 600px;
+width: calc(100% - 2rem);
+max-height: 80vh;
+display: flex;
+flex-direction: column;
+`;
 const closeBtn = document.createElement('button');
-closeBtn.innerHTML = `
-               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                   <line x1="18" y1="6" x2="6" y2="18"></line>
-                   <line x1="6" y1="6" x2="18" y2="18"></line>
-               </svg>
-           `;
-closeBtn.style.cssText = `
-               position: absolute;
-               top: 0.75rem;
-               right: 0.75rem;
-               width: 32px;
-               height: 32px;
-               border: none;
-               background: rgba(0,0,0,0.1);
-               border-radius: 50%;
-               color: #4A403A;
-               cursor: pointer;
-               display: flex;
-               align-items: center;
-               justify-content: center;
-               z-index: 10;
-               transition: background 0.2s;
-           `;
+closeBtn.innerHTML = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>`;
+closeBtn.style.cssText = `position: absolute; top: 0.75rem; right: 0.75rem; width: 32px; height: 32px; border: none; background: rgba(0,0,0,0.1); border-radius: 50%; color: #4A403A; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 10; transition: background 0.2s;`;
 closeBtn.onmouseenter = () => { closeBtn.style.background = 'rgba(0,0,0,0.2);'; };
 closeBtn.onmouseleave = () => { closeBtn.style.background = 'rgba(0,0,0,0.1);'; };
 closeBtn.onclick = function(e) { e.stopPropagation(); window.closeFloatLayer(); };
-
-// 图片
 const img = document.createElement('img');
 img.src = imageSrc;
 img.alt = title;
-img.style.cssText = `
-               width: 100%;
-               height: auto;
-               object-fit: contain;
-               max-height: calc(80vh - 2rem);
-           `;
-
-// 标题
+img.style.cssText = `width: 100%; height: auto; object-fit: contain; max-height: calc(80vh - 2rem);`;
 const titleDiv = document.createElement('div');
 titleDiv.textContent = title;
-titleDiv.style.cssText = `
-               padding: 0.75rem 1rem;
-               background: #FAF5F0;
-               color: #4A403A;
-               font-size: 0.9rem;
-               text-align: center;
-           `;
-
+titleDiv.style.cssText = `padding: 0.75rem 1rem; background: #FAF5F0; color: #4A403A; font-size: 0.9rem; text-align: center;`;
 floatLayer.appendChild(closeBtn);
 floatLayer.appendChild(img);
 floatLayer.appendChild(titleDiv);
 document.body.appendChild(floatLayer);
-
-// 计算位置
 const rect = clickedElement.getBoundingClientRect();
 const layerWidth = Math.min(600, window.innerWidth - 32);
 const layerHeight = floatLayer.offsetHeight;
-
 let left = rect.left - layerWidth - 16;
 let top = rect.top - (layerHeight - rect.height) / 2;
-
-// 检查左侧空间
-if (left < 16) {
-left = rect.right + 16;
-}
-
-// 检查右侧空间
-if (left + layerWidth > window.innerWidth - 16) {
-left = (window.innerWidth - layerWidth) / 2;
-}
-
-// 检查顶部空间
-if (top < 16) {
-top = 16;
-}
-
-// 检查底部空间
-if (top + layerHeight > window.innerHeight - 16) {
-top = window.innerHeight - layerHeight - 16;
-}
-
+if (left < 16) left = rect.right + 16;
+if (left + layerWidth > window.innerWidth - 16) left = (window.innerWidth - layerWidth) / 2;
+if (top < 16) top = 16;
+if (top + layerHeight > window.innerHeight - 16) top = window.innerHeight - layerHeight - 16;
 floatLayer.style.left = left + 'px';
 floatLayer.style.top = top + 'px';
-
 window.currentFloatLayer = floatLayer;
-
-// 点击外部关闭
 document.addEventListener('click', window.closeOnOutside);
-}
+};
 
 window.closeFloatLayer = function() {
 if (window.currentFloatLayer) {
@@ -2638,74 +2558,59 @@ window.currentFloatLayer = null;
 window.lastClickedElement = null;
 }
 document.removeEventListener('click', window.closeOnOutside);
-}
+};
 
 window.closeOnOutside = function(e) {
 if (window.currentFloatLayer && !window.currentFloatLayer.contains(e.target)) {
 window.closeFloatLayer();
 }
-}
+};
 
-// 关闭按钮点击
 modalClose.addEventListener('click', closeModal);
-
-// 点击遮罩关闭
 modalOverlay.addEventListener('click', (e) => {
-if (e.target === modalOverlay) {
-closeModal();
-}
+if (e.target === modalOverlay) closeModal();
 });
-
-// ESC 键关闭
 document.addEventListener('keydown', (e) => {
-if (e.key === 'Escape' && modalOverlay.classList.contains('active')) {
-closeModal();
-}
+if (e.key === 'Escape' && modalOverlay.classList.contains('active')) closeModal();
 });
 
 // ============================================
-// 联系表单验证与提交
+// 联系表单 Netlify 异步提交（无刷新）
 // ============================================
-contactForm.addEventListener('submit', (e) => {
+if (contactForm && formSuccess) {
+contactForm.addEventListener('submit', async (e) => {
 e.preventDefault();
-
-const name = document.getElementById('name').value.trim();
-const email = document.getElementById('email').value.trim();
-const message = document.getElementById('message').value.trim();
-
-// 简单验证
-if (name.length < 2) {
-alert('请输入有效的姓名');
-return;
-}
-
-const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-if (!emailRegex.test(email)) {
-alert('请输入有效的邮箱地址');
-return;
-}
-
-if (message.length < 10) {
-alert('留言内容至少需要10个字符');
-return;
-}
-
-// 模拟提交成功
+const formData = new FormData(contactForm);
+try {
+const response = await fetch('/', {
+method: 'POST',
+body: formData,
+headers: { 'Accept': 'application/json' }
+});
+const data = await response.json();
+if (response.ok && data.code === 'success') {
 contactForm.style.display = 'none';
 formSuccess.style.display = 'block';
+contactForm.reset();
+} else {
+alert('提交失败，请稍后重试或直接发送邮件至 h18970097580@163.com');
+}
+} catch (error) {
+console.error('提交错误:', error);
+alert('网络错误，请检查网络后重试');
+}
 });
+}
 
 // ============================================
 // 简历下载功能
 // ============================================
 function downloadResume() {
-// 下载真实的简历PDF文件
 const pdfFileName = '【产品运营】黄露仪-中南财经政法大学研一（211）-6个月-立即到岗-单周5天.pdf';
 const pdfUrl = encodeURI(pdfFileName);
 const link = document.createElement('a');
 link.href = pdfUrl;
-            link.download = '黄露仪_简历.pdf';
-            link.download = '黄露仪-中南财经政法大学研一（211）-6个月-立即到岗-单周5天.pdf';
+link.download = '黄露仪_简历.pdf';
 document.body.appendChild(link);
 link.click();
 document.body.removeChild(link);
@@ -2715,60 +2620,38 @@ document.body.removeChild(link);
 // 页面加载完成后的初始化
 // ============================================
 document.addEventListener('DOMContentLoaded', () => {
-// 初始显示 Hero 区域的动画元素
 setTimeout(() => {
 document.querySelectorAll('.hero .fade-in-up').forEach(el => {
 el.classList.add('visible');
 });
 }, 300);
-
-// 初始化卡牌转轮
 initCardCarousel();
 });
 
 // ============================================
-// 卡牌转轮旋转功能
+// 卡牌转轮旋转功能（静止不旋转，仅做定位）
 // ============================================
-let carouselRotation = 0;
-let carouselAnimation = null;
-let isHoveringCarousel = false;
-
 function initCardCarousel() {
 const carousel = document.getElementById('cardCarousel');
 if (!carousel) return;
-
 const cards = carousel.querySelectorAll('.portfolio-card:not(.mobile)');
-const centerX = 300; // 转轮容器中心 X
-const centerY = 150; // 椭圆圆心 Y（上移）
-const radiusX = 190; // 椭圆水平半径（减小，更靠近中心）
-const radiusY = 120; // 椭圆垂直半径（减小，整体上移）
-
-// 卡牌均匀分布：180度范围，4张卡牌，间隔60度
-// 从左到右：核心产出(180°) → AI探索(120°) → 账号运营(60°) → 项目经历(0°)
-const angles = [180, 120, 60, 0]; // 从左到右均匀分布
-
-// 静止定位，不旋转
+const centerX = 300;
+const centerY = 150;
+const radiusX = 190;
+const radiusY = 120;
+const angles = [180, 120, 60, 0];
 function positionCards() {
 cards.forEach((card, index) => {
 const angle = angles[index];
 const radians = (angle * Math.PI) / 180;
-
-// 椭圆参数方程
 const x = centerX + radiusX * Math.cos(radians);
 const y = centerY + radiusY * Math.sin(radians);
-
-// 只使用translate定位，卡牌静止不旋转
 card.style.left = x + 'px';
 card.style.top = y + 'px';
 card.style.transform = `translate(-50%, -50%)`;
 });
 }
-
-// 初始化位置（静止）
 positionCards();
 }
 </script>
-
-
-</body></html>
 </body></html>
