@@ -2211,30 +2211,33 @@
 <div class="contact-form fade-in-up">
     <h3 class="form-title">给我留言</h3>
     <!-- 注意：将下面的 action 地址替换成你自己的 Formspree 表单地址 -->
-    <form action="https://formspree.io/f/mvzlwbvl" method="POST" id="contactForm">
-      <form action="https://formspree.io/f/你的表单ID" method="POST" id="contactForm">
+ <form netlify name="contact" id="contactForm">
+    <!-- 隐藏字段：Netlify 表单必须 -->
+    <input type="hidden" name="form-name" value="contact" />
+    
     <div class="form-group">
         <label class="form-label" for="name">您的姓名 *</label>
         <input type="text" id="name" name="name" class="form-input" placeholder="请输入您的姓名" required>
     </div>
     <div class="form-group">
         <label class="form-label" for="email">电子邮箱 *</label>
-        <input type="email" id="email" name="_replyto" class="form-input" placeholder="请输入您的邮箱" required>
+        <input type="email" id="email" name="email" class="form-input" placeholder="请输入您的邮箱" required>
     </div>
     <div class="form-group">
         <label class="form-label" for="message">留言内容 *</label>
         <textarea id="message" name="message" class="form-input form-textarea" placeholder="请输入您的留言内容..." required></textarea>
     </div>
-    <input type="hidden" name="_subject" value="新留言来自黄露仪作品集">
     <button type="submit" class="form-submit">发送留言</button>
 </form>
-    <div class="form-success" id="formSuccess">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-            <polyline points="22 4 12 14.01 9 11.01"></polyline>
-        </svg>
-        <h3>已收到您的留言！</h3>
-        <p>我会尽快联系您，感谢您的关注。</p>
+
+<div class="form-success" id="formSuccess" style="display: none;">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+        <polyline points="22 4 12 14.01 9 11.01"></polyline>
+    </svg>
+    <h3>已收到您的留言！</h3>
+    <p>我会尽快联系您，感谢您的关注。</p>
+</div>
     </div>
 </div>
 
@@ -2664,37 +2667,40 @@
         });
 
         // ============================================
-        // 联系表单验证与提交
-        // ============================================
-        contactForm.addEventListener('submit', (e) => {
-            e.preventDefault();
+        // Netlify Forms AJAX 提交（无刷新）
+const contactForm = document.getElementById('contactForm');
+const formSuccess = document.getElementById('formSuccess');
+
+if (contactForm) {
+    contactForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const formData = new FormData(contactForm);
+        
+        try {
+            const response = await fetch('/', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'Accept': 'application/json'
+                }
+            });
             
-            const name = document.getElementById('name').value.trim();
-            const email = document.getElementById('email').value.trim();
-            const message = document.getElementById('message').value.trim();
-
-            // 简单验证
-            if (name.length < 2) {
-                alert('请输入有效的姓名');
-                return;
+            if (response.ok) {
+                // 隐藏表单，显示成功信息
+                contactForm.style.display = 'none';
+                if (formSuccess) formSuccess.style.display = 'block';
+                // 可选：重置表单值
+                contactForm.reset();
+            } else {
+                alert('提交失败，请稍后重试或直接发送邮件至 h18970097580@163.com');
             }
-
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            if (!emailRegex.test(email)) {
-                alert('请输入有效的邮箱地址');
-                return;
-            }
-
-            if (message.length < 10) {
-                alert('留言内容至少需要10个字符');
-                return;
-            }
-
-            // 模拟提交成功
-            contactForm.style.display = 'none';
-            formSuccess.style.display = 'block';
-        });
-
+        } catch (error) {
+            console.error('提交错误:', error);
+            alert('网络错误，请检查网络后重试');
+        }
+    });
+}
         // ============================================
         // 简历下载功能
         // ============================================
